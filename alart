@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Emergency Alert System</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #ffe5e5, #ffffff);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 92%;
+    max-width: 450px;
+    background: white;
+    padding: 25px;
+    border-radius: 25px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+    text-align: center;
+}
+
+h1 {
+    color: #d00000;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.input-box {
+    width: 100%;
+    padding: 13px;
+    margin: 7px 0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 16px;
+}
+
+.sos-button {
+    width: 190px;
+    height: 190px;
+    border-radius: 50%;
+    border: 8px solid #ffb3b3;
+    background: #d00000;
+    color: white;
+    font-size: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 25px auto;
+    box-shadow: 0 8px 25px rgba(208,0,0,0.35);
+}
+
+.sos-button:active {
+    transform: scale(0.95);
+}
+
+.button {
+    width: 100%;
+    padding: 14px;
+    margin: 6px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.call {
+    background: #198754;
+    color: white;
+}
+
+.location {
+    background: #0d6efd;
+    color: white;
+}
+
+.share {
+    background: #6f42c1;
+    color: white;
+}
+
+.status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: bold;
+    min-height: 40px;
+}
+
+.alert-active {
+    background: #ffe0e0;
+    color: #c00000;
+}
+
+.location-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #555;
+    word-break: break-all;
+}
+
+footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #777;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🚨 Emergency Alert</h1>
+
+    <p class="subtitle">
+        Emergency Alert & Location Sharing System
+    </p>
+
+    <input
+        type="text"
+        id="userName"
+        class="input-box"
+        placeholder="Enter your name"
+    >
+
+    <input
+        type="tel"
+        id="contactNumber"
+        class="input-box"
+        placeholder="Emergency contact number"
+    >
+
+    <button class="sos-button" onclick="sendSOS()">
+        SOS<br>ALERT
+    </button>
+
+    <button class="button call" onclick="call112()">
+        📞 Call Emergency 112
+    </button>
+
+    <button class="button location" onclick="getLocation()">
+        📍 Get My Location
+    </button>
+
+    <button class="button share" onclick="shareEmergency()">
+        📤 Share Emergency Alert
+    </button>
+
+    <div id="status" class="status">
+        System ready
+    </div>
+
+    <div id="locationInfo" class="location-info"></div>
+
+    <footer>
+        Emergency assistance website • Use SOS only when necessary
+    </footer>
+
+</div>
+
+
+<script>
+
+let currentLatitude = null;
+let currentLongitude = null;
+
+
+/* SOS ALERT */
+
+function sendSOS() {
+
+    const name =
+        document.getElementById("userName").value || "User";
+
+    const status =
+        document.getElementById("status");
+
+    status.className = "status alert-active";
+
+    status.innerHTML =
+        "🚨 EMERGENCY ALERT ACTIVATED!";
+
+    // Phone vibration
+    if (navigator.vibrate) {
+        navigator.vibrate([
+            500,
+            200,
+            500,
+            200,
+            500
+        ]);
+    }
+
+    // Alert sound
+    playAlertSound();
+
+    // Automatically get location
+    getLocation();
+
+}
+
+
+/* CALL 112 */
+
+function call112() {
+
+    window.location.href = "tel:112";
+
+}
+
+
+/* GET LOCATION */
+
+function getLocation() {
+
+    const status =
+        document.getElementById("status");
+
+    const locationInfo =
+        document.getElementById("locationInfo");
+
+    if (!navigator.geolocation) {
+
+        status.innerHTML =
+            "❌ Location is not supported by this browser.";
+
+        return;
+    }
+
+    status.innerHTML =
+        "📍 Getting your location...";
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+            currentLatitude =
+                position.coords.latitude;
+
+            currentLongitude =
+                position.coords.longitude;
+
+            const mapsLink =
+                "https://www.google.com/maps?q="
+                + currentLatitude
+                + ","
+                + currentLongitude;
+
+            locationInfo.innerHTML =
+                "Latitude: " + currentLatitude.toFixed(6)
+                + "<br>"
+                + "Longitude: " + currentLongitude.toFixed(6)
+                + "<br><br>"
+                + '<a href="' + mapsLink +
+                '" target="_blank">🗺️ Open in Google Maps</a>';
+
+            status.innerHTML =
+                "✅ Location received.";
+
+        },
+
+        function(error) {
+
+            status.innerHTML =
+                "❌ Location permission denied or unavailable.";
+
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+
+    );
+}
+
+
+/* SHARE EMERGENCY */
+
+async function shareEmergency() {
+
+    const name =
+        document.getElementById("userName").value || "User";
+
+    const contact =
+        document.getElementById("contactNumber").value;
+
+    if (currentLatitude === null) {
+
+        getLocation();
+
+        alert(
+            "Please wait for the location to be received, then press Share again."
+        );
+
+        return;
+    }
+
+    const mapsLink =
+        "https://www.google.com/maps?q="
+        + currentLatitude
+        + ","
+        + currentLongitude;
+
+    const message =
+        "🚨 EMERGENCY ALERT 🚨\n\n"
+        + "Name: " + name + "\n"
+        + "I need help.\n\n"
+        + "My location:\n"
+        + mapsLink
+        + "\n\n"
+        + (contact
+            ? "Emergency Contact: " + contact
+            : "");
+
+    if (navigator.share) {
